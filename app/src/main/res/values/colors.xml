@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="top_bar">#2D3040</color>
+    <color name="tab_inactive">#9A9CA5</color>
+    <color name="accent_yellow">#FFDD33</color>
+    <color name="arrow">#C9D3EC</color>
+    <color name="button_text">#333333</color>
+</resources>

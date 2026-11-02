@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- Kopfzeile mit Tabs -->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/top_bar"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:id="@+id/tabDay"
+            android:layout_width="0dp"
+            android:layout_height="58dp"
+            android:layout_weight="1"
+            android:background="?android:attr/selectableItemBackground">
+            <TextView
+                android:id="@+id/tabDayText"
+                style="@style/TabText"
+                android:text="Tag" />
+            <View android:id="@+id/tabDayLine" style="@style/TabLine" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/tabWeek"
+            android:layout_width="0dp"
+            android:layout_height="58dp"
+            android:layout_weight="1.25"
+            android:background="?android:attr/selectableItemBackground">
+            <TextView
+                android:id="@+id/tabWeekText"
+                style="@style/TabText"
+                android:text="Woche" />
+            <View android:id="@+id/tabWeekLine" style="@style/TabLine" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/tabMonth"
+            android:layout_width="0dp"
+            android:layout_height="58dp"
+            android:layout_weight="1.25"
+            android:background="?android:attr/selectableItemBackground">
+            <TextView
+                android:id="@+id/tabMonthText"
+                style="@style/TabText"
+                android:text="Monat" />
+            <View android:id="@+id/tabMonthLine" style="@style/TabLine" />
+        </FrameLayout>
+
+        <ImageButton
+            android:id="@+id/menuButton"
+            android:layout_width="48dp"
+            android:layout_height="58dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Menü"
+            android:scaleType="center"
+            android:src="@drawable/ic_more" />
+    </LinearLayout>
+
+    <!-- Inhalt mit Farbverlauf -->
+    <LinearLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- Datum -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="68dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/prevButton"
+                android:layout_width="64dp"
+                android:layout_height="match_parent"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Zurück"
+                android:padding="20dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_arrow_left" />
+
+            <TextView
+                android:id="@+id/periodTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:maxLines="1"
+                android:textColor="#FFFFFF"
+                android:textSize="28sp" />
+
+            <ImageButton
+                android:id="@+id/nextButton"
+                android:layout_width="64dp"
+                android:layout_height="match_parent"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Weiter"
+                android:padding="20dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_arrow_right" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginHorizontal="8dp"
+            android:background="#55FFFFFF" />
+
+        <!-- Schritte -->
+        <LinearLayout
+            android:id="@+id/stepsRow"
+            android:layout_width="match_parent"
+            android:layout_height="112dp"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/tile_bg"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="20dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="schritte"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp" />
+                <ImageView
+                    android:layout_width="54dp"
+                    android:layout_height="62dp"
+                    android:importantForAccessibility="no"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_feet" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/stepsValue"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:autoSizeMaxTextSize="80sp"
+                android:autoSizeMinTextSize="30sp"
+                android:autoSizeTextType="uniform"
+                android:fontFamily="sans-serif"
+                android:gravity="end|center_vertical"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:textColor="#FFFFFF"
+                android:textSize="80sp" />
+        </LinearLayout>
+
+        <!-- Kennzahlen 2x2 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="18dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/stats_border"
+            android:divider="@drawable/stats_divider"
+            android:orientation="vertical"
+            android:padding="1.5dp"
+            android:showDividers="middle">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:divider="@drawable/stats_divider"
+                android:orientation="horizontal"
+                android:showDividers="middle">
+                <LinearLayout android:id="@+id/tileKcal" style="@style/Tile">
+                    <ImageView style="@style/TileIcon" android:src="@drawable/ic_flame" />
+                    <TextView android:id="@+id/kcalValue" style="@style/TileValue" />
+                </LinearLayout>
+                <LinearLayout android:id="@+id/tileDistance" style="@style/Tile">
+                    <ImageView style="@style/TileIcon" android:src="@drawable/ic_ruler" />
+                    <TextView android:id="@+id/distanceValue" style="@style/TileValue" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:divider="@drawable/stats_divider"
+                android:orientation="horizontal"
+                android:showDividers="middle">
+                <LinearLayout android:id="@+id/tileTime" style="@style/Tile">
+                    <ImageView style="@style/TileIcon" android:src="@drawable/ic_timer" />
+                    <TextView android:id="@+id/timeValue" style="@style/TileValue" />
+                </LinearLayout>
+                <LinearLayout android:id="@+id/tileSpeed" style="@style/Tile">
+                    <ImageView style="@style/TileIcon" android:src="@drawable/ic_speed" />
+                    <TextView android:id="@+id/speedValue" style="@style/TileValue" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Diagramm -->
+        <com.rgb42.footy.ChartView
+            android:id="@+id/chart"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="12dp"
+            android:layout_weight="1" />
+
+        <!-- Start/Stop -->
+        <LinearLayout
+            android:id="@+id/startStopButton"
+            android:layout_width="match_parent"
+            android:layout_height="62dp"
+            android:layout_marginHorizontal="26dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="24dp"
+            android:background="@drawable/button_bg"
+            android:elevation="2dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="46dp"
+                android:importantForAccessibility="no"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_person" />
+            <TextView
+                android:id="@+id/startStopText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="14dp"
+                android:text="STOP"
+                android:textColor="@color/button_text"
+                android:textSize="38sp" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
