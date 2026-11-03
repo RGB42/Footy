@@ -27,16 +27,9 @@ import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.TextView
 import android.widget.Toast
-import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import java.time.temporal.TemporalAdjusters
-import java.util.Locale
 
 class MainActivity : Activity() {
-
-    private enum class Period { DAY, WEEK, MONTH }
 
     private lateinit var prefs: Prefs
     private lateinit var store: StepStore
@@ -64,10 +57,6 @@ class MainActivity : Activity() {
     private var refreshPending = false
     private val refreshRunnable = Runnable { refreshPending = false; refresh() }
 
-    private val german = Locale.GERMANY
-    private val dayTitle = DateTimeFormatter.ofPattern("EE, d. MMM", german)
-    private val weekTitleShort = DateTimeFormatter.ofPattern("d. MMM", german)
-    private val monthTitle = DateTimeFormatter.ofPattern("LLL yyyy", german)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -124,6 +113,7 @@ class MainActivity : Activity() {
             anchor = LocalDate.ofEpochDay(it.getLong("anchor", LocalDate.now().toEpochDay()))
         }
         selectPeriod(period)
+        WatchLink.sendSettings(this)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -140,6 +130,7 @@ class MainActivity : Activity() {
         if (followToday) anchor = LocalDate.now()
         ensureTracking()
         refresh()
+        WatchLink.catchUp(this) { refresh() }
     }
 
     override fun onPause() {
@@ -240,26 +231,8 @@ class MainActivity : Activity() {
     }
 
     private fun move(dir: Long) {
-        anchor = when (period) {
-            Period.DAY -> anchor.plusDays(dir)
-            Period.WEEK -> anchor.plusWeeks(dir)
-            Period.MONTH -> anchor.plusMonths(dir)
-        }
-        val today = LocalDate.now()
-        if (anchor.isAfter(today)) anchor = today
+        anchor = Summary.move(period, anchor, dir)
         refresh()
-    }
-
-    private fun periodStart(): LocalDate = when (period) {
-        Period.DAY -> anchor
-        Period.WEEK -> anchor.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-        Period.MONTH -> anchor.withDayOfMonth(1)
-    }
-
-    private fun periodDays(start: LocalDate): Int = when (period) {
-        Period.DAY -> 1
-        Period.WEEK -> 7
-        Period.MONTH -> start.lengthOfMonth()
     }
 
     private fun scheduleRefresh() {
@@ -271,78 +244,19 @@ class MainActivity : Activity() {
     // ---------- Anzeige ----------
 
     private fun refresh() {
-        val today = LocalDate.now()
-        val start = periodStart()
-        val days = periodDays(start)
-        val end = start.plusDays(days.toLong()) // exklusiv
-        val profile = prefs.profile
-        val buckets = store.range(Keys.dayStart(start), Keys.dayStart(end))
+        val sum = Summary.compute(store, prefs, period, anchor, metric)
+        title.text = sum.title(period)
+        prev.visibility = if (sum.hasPrev) View.VISIBLE else View.INVISIBLE
+        next.visibility = if (sum.hasNext) View.VISIBLE else View.INVISIBLE
 
-        // Titel
-        title.text = when (period) {
-            Period.DAY -> dayTitle.format(start)
-            Period.WEEK -> "${weekTitleShort.format(start)} – ${weekTitleShort.format(end.minusDays(1))}"
-            Period.MONTH -> monthTitle.format(start).replaceFirstChar { it.uppercase(german) }
-        }
-        val firstDate = store.firstKey()?.let { Keys.date(it) } ?: today
-        prev.visibility = if (start.isAfter(firstDate)) View.VISIBLE else View.INVISIBLE
-        next.visibility = if (end.isAfter(today)) View.INVISIBLE else View.VISIBLE
-
-        // Summen
-        val total = Totals()
-        buckets.forEach { total.add(it, profile) }
+        val total = sum.total
         stepsValue.text = Fmt.int(total.steps)
         kcalValue.text = withUnit(Fmt.one(total.kcal), "kcal")
         distanceValue.text = withUnit(Fmt.int(Math.round(total.distanceM)), "m")
         timeValue.text = Fmt.duration(total.activeMs)
         speedValue.text = withUnit(Fmt.one(total.speedKmh), "km/h")
         for ((m, v) in tiles) v.isSelected = m == metric
-
-        // Diagramm
-        val minTop = metric.minTop(prefs.goal)
-        if (period == Period.DAY) {
-            val hours = Array(24) { Totals() }
-            buckets.forEach { hours[Keys.hourOf(it.key)].add(it, profile) }
-            val values = FloatArray(25)
-            val running = Totals()
-            for (h in 0 until 24) {
-                if (metric == Metric.SPEED) {
-                    values[h + 1] = hours[h].speedKmh.toFloat()
-                } else {
-                    running.steps += hours[h].steps
-                    running.activeMs += hours[h].activeMs
-                    running.distanceM += hours[h].distanceM
-                    running.kcal += hours[h].kcal
-                    values[h + 1] = metric.of(running)
-                }
-            }
-            val visible = when {
-                start.isBefore(today) -> 25
-                start == today -> LocalTime.now().hour + 2
-                else -> 0
-            }
-            val labels = (2..24 step 2).map { it to it.toString() }
-            val hi = if (visible > 0) metric.format(values[visible - 1]) else null
-            chart.setData(ChartView.Style.LINE, values, visible, labels, minTop, hi, metric == Metric.SPEED)
-        } else {
-            val perDay = Array(days) { Totals() }
-            buckets.forEach {
-                val idx = (Keys.date(it.key).toEpochDay() - start.toEpochDay()).toInt()
-                if (idx in 0 until days) perDay[idx].add(it, profile)
-            }
-            val values = FloatArray(days) { metric.of(perDay[it]) }
-            val labels = if (period == Period.WEEK) {
-                (0 until 7).map { i ->
-                    i to start.plusDays(i.toLong()).dayOfWeek
-                        .getDisplayName(java.time.format.TextStyle.SHORT, german).trimEnd('.')
-                }
-            } else {
-                (5..days step 5).mapIndexed { n, d ->
-                    (d - 1) to if (n == 0) "${start.monthValue}/$d" else d.toString()
-                }
-            }
-            chart.setData(ChartView.Style.BARS, values, days, labels, minTop, null, metric == Metric.SPEED)
-        }
+        sum.applyTo(chart)
     }
 
     private fun withUnit(value: String, unit: String): CharSequence {
@@ -422,6 +336,7 @@ class MainActivity : Activity() {
                 stride.text.toString().toIntOrNull()?.takeIf { it in 30..150 }?.let { prefs.strideCm = it }
                 weight.text.toString().toIntOrNull()?.takeIf { it in 20..300 }?.let { prefs.weightKg = it }
                 goal.text.toString().toIntOrNull()?.takeIf { it in 100..100_000 }?.let { prefs.goal = it }
+                WatchLink.sendSettings(this)
                 refresh()
             }
             .show()

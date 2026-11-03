@@ -16,7 +16,12 @@ jobs:
       # Android-SDK ist auf ubuntu-latest vorinstalliert (ANDROID_HOME)
       - name: Build
         run: ./gradlew assembleRelease --no-daemon
+      - name: APKs umbenennen
+        run: |
+          mkdir out
+          cp app/build/outputs/apk/release/app-release.apk out/Footy-Handy.apk
+          cp wear/build/outputs/apk/release/wear-release.apk out/Footy-Uhr.apk
       - uses: actions/upload-artifact@v5
         with:
           name: Footy-apk
-          path: app/build/outputs/apk/release/app-release.apk
+          path: out/*.apk

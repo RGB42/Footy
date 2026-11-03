@@ -8,18 +8,19 @@ android {
     compileSdk = 35
 
     defaultConfig {
+        // Handy und Uhr brauchen dieselbe ID und denselben Schlüssel für den Datenaustausch
         applicationId = "com.rgb42.footy"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
     }
 
     signingConfigs {
         // Fester Schlüssel, damit Updates über die alte Version installiert
         // werden können, ohne die gespeicherten Schritte zu verlieren.
         create("footy") {
-            storeFile = file("footy.keystore")
+            storeFile = rootProject.file("app/footy.keystore")
             storePassword = "footy123"
             keyAlias = "footy"
             keyPassword = "footy123"
@@ -45,4 +46,9 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+}
+
+dependencies {
+    implementation(project(":shared"))
+    implementation("com.google.android.gms:play-services-wearable:19.0.0")
 }

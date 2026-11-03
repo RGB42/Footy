@@ -18,6 +18,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
 import android.provider.Settings
+import com.rgb42.footy.shared.R
 import java.time.LocalDate
 
 /**
@@ -38,6 +39,9 @@ class StepService : Service(), SensorEventListener {
 
         /** Ruft die Activity bei neuen Schritten auf (Main-Thread). */
         @JvmStatic var listener: (() -> Unit)? = null
+
+        /** Wird nach jedem Speichern aufgerufen (Uhr: Sync zum Handy). */
+        @JvmStatic var afterRecord: ((Context) -> Unit)? = null
 
         private var instance: StepService? = null
 
@@ -135,6 +139,7 @@ class StepService : Service(), SensorEventListener {
             (SystemClock.elapsedRealtimeNanos() - event.timestamp) / 1_000_000
         if (record(value, wallMs)) {
             listener?.invoke()
+            afterRecord?.invoke(this)
             updateNotification()
         }
     }
@@ -182,9 +187,10 @@ class StepService : Service(), SensorEventListener {
     }
 
     private fun buildNotification(steps: Long): Notification {
+        val launch = (packageManager.getLaunchIntentForPackage(packageName) ?: Intent())
+            .addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val pi = PendingIntent.getActivity(
-            this, 0,
-            Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            this, 0, launch,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
         return Notification.Builder(this, CHANNEL_ID)

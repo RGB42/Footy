@@ -29,6 +29,18 @@ class ChartView(ctx: Context, attrs: AttributeSet? = null) : View(ctx, attrs) {
     private var step = 1f
     private var decimals = true
 
+    /** Kleinere Schrift und Ränder (Uhr). */
+    var compact = false
+        set(v) {
+            field = v
+            val f = if (v) 0.62f else 1f
+            yLabelPaint.textSize = sp(15f) * f
+            xLabelPaint.textSize = sp(15f) * f
+            hiText.textSize = sp(16f) * f
+            invalidate()
+        }
+    private val k get() = if (compact) 0.6f else 1f
+
     private fun dp(v: Float) = v * resources.displayMetrics.density
     private fun sp(v: Float) =
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, v, resources.displayMetrics)
@@ -102,11 +114,11 @@ class ChartView(ctx: Context, attrs: AttributeSet? = null) : View(ctx, attrs) {
     override fun onDraw(canvas: Canvas) {
         var labelW = 0f
         for (i in 1..6) labelW = max(labelW, yLabelPaint.measureText(Fmt.axis(step * i, decimals)))
-        val left = max(labelW + dp(10f), width * 0.15f)
-        val right = width - dp(18f)
-        val top = dp(14f)
-        val bottom = height - dp(30f)
-        if (bottom - top < dp(40f) || right <= left) return
+        val left = max(labelW + dp(10f * k), width * (if (compact) 0.1f else 0.15f))
+        val right = width - dp(18f * k)
+        val top = dp(14f * k)
+        val bottom = height - dp(30f * k)
+        if (bottom - top < dp(30f) || right <= left) return
         val plotH = bottom - top
         val plotW = right - left
 
@@ -117,7 +129,7 @@ class ChartView(ctx: Context, attrs: AttributeSet? = null) : View(ctx, attrs) {
             canvas.drawLine(left, y, right, y, gridPaint)
             canvas.drawText(Fmt.axis(step * i, decimals), left - dp(6f), y + textOffset, yLabelPaint)
         }
-        val xLabelY = bottom + dp(8f) - xLabelPaint.ascent()
+        val xLabelY = bottom + dp(8f * k) - xLabelPaint.ascent()
         fun yOf(v: Float) = bottom - plotH * (v / topValue).coerceIn(0f, 1f)
 
         if (style == Style.BARS) {
@@ -151,8 +163,8 @@ class ChartView(ctx: Context, attrs: AttributeSet? = null) : View(ctx, attrs) {
                 canvas.drawPath(fillPath, fillPaint)
                 canvas.drawPath(path, linePaint)
                 canvas.drawLine(lastX, lastY, lastX, bottom, linePaint)
-                for (i in 0 until count - 1) canvas.drawCircle(left + dx * i, yOf(values[i]), dp(4.5f), pointPaint)
-                canvas.drawCircle(lastX, lastY, dp(5f), hiPaint)
+                for (i in 0 until count - 1) canvas.drawCircle(left + dx * i, yOf(values[i]), dp(4.5f * k), pointPaint)
+                canvas.drawCircle(lastX, lastY, dp(5f * k), hiPaint)
                 highlight?.let {
                     val half = hiText.measureText(it) / 2
                     val tx = lastX.coerceIn(half, width - half)
